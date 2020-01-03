@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "Sample.TimeApi": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "api/time/dbtime",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "http://localhost:5002"
+    }
+  }
+}

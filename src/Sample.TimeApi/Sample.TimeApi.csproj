@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <ReleaseVersion>0.2</ReleaseVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Sample.Common\Sample.Common.csproj">
+    </ProjectReference>
+  </ItemGroup>
+    <ItemGroup>
+      <None Include="..\Shared\*.Development.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>  
+</Project>
