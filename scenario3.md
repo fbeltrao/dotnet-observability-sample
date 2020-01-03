@@ -163,7 +163,7 @@ Visualization for Application Insights is available under "Metrics":
 
 ## Running this scenario
 
-In order to run this scenario locally ensure that following requirements are met:
+In order to run this scenario locally ensure the following requirements are met:
 
 - SQL Server is available at `server=localhost;user id=sa;password=Pass@Word1;`<br/>
 A way to accomplish it is to run as a linux docker container:
@@ -223,3 +223,7 @@ Enqueuing from "WebSiteC" every 30 seconds
 ```bash
 watch -n 30 curl --request GET http://localhost:5001/api/enqueue/WebSiteC
 ```
+
+## Where to go next
+
+- [Back to overview](./README.md)

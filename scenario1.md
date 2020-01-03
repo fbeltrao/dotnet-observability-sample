@@ -34,7 +34,7 @@ finally
 }
 ```
 
-Recapping: besides the custom SQL dependency tracking needed for OpenTelemetry **no custom code (besides SDK bootstrapping) is required**.
+Recapping: besides the custom SQL dependency tracking needed for OpenTelemetry, **no custom code (besides SDK bootstrapping) is required**.
 
 ## Requirement validation
 
@@ -44,35 +44,35 @@ In Jaeger UI, traces can be filtered by service and operation, displaying an ove
 
 ![Jaeger trace overview](media/01-jaeger-dbtime-calls.png)
 
-In application insights this is available under Performance:
+In Application Insights the same information is available under Performance:
 
 ![Application Insights trace overview](media/01-ai-dbtime-calls.png)
 
 ### 2. Duration of SQL operations
 
-In Jaeger, clicking on a trace display details it, including the SQL call duration:
+In Jaeger, clicking on a trace display detailed information, including the SQL call duration:
 
 ![Jaeger trace details](media/01-jaeger-getdbtime.png)
 
-In application insights we can view as dependencies:
+In Application Insights we can either view as dependencies:
 
 ![As dependencies](media/01-ai-dependencies-list.png)
 
-Or as part of the end to end transaction:
+Or as part of the end-to-end transaction:
 
 ![As end to end transaction](media/01-ai-getdbtime-detail.png)
 
 ### 3. Log information containing SQL Server response
 
-As the sample application is using Application Insights as logging provider the screenshot below shows how the log can be scoped to the end to end transaction.
+As the sample application is using Application Insights as logging provider the screenshot below shows how the log can be scoped to the end-to-end transaction.
 
 ![AI logs](media/01-ai-getdbtime-items.png)
 
-This is powerful! If you have distinct system taking care of tracing and logging finding logs for a trace won't be so simple.
+This is powerful. If you have distinct system taking care of tracing and logging finding logs for a trace won't be so simple.
 
 ## Running this scenario
 
-In order to run this scenario locally ensure that following requirements are met:
+In order to run this scenario locally ensure the following requirements are met:
 
 - SQL Server is available at `server=localhost;user id=sa;password=Pass@Word1;`<br/>
 A way to accomplish it is to run as a linux docker container:
@@ -103,3 +103,8 @@ To run the sample start the project Sample.TimeApi. To generate load use the fol
 ```bash
 watch -n 1 curl --request  GET http://localhost:5002/api/time/dbtime
 ```
+
+## Where to go next
+
+- [Back to overview](./README.md)
+- [Scenario 2: REST API call chain](./scenario2.md)

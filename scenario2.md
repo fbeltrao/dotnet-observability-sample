@@ -69,7 +69,7 @@ The dependency graph in Application Insights is available under Application Map:
 
 ## Running this scenario
 
-In order to run this scenario locally ensure that following requirements are met:
+In order to run this scenario locally ensure the following requirements are met:
 
 - SQL Server is available at `server=localhost;user id=sa;password=Pass@Word1;`<br/>
 A way to accomplish it is to run as a linux docker container:
@@ -100,3 +100,8 @@ To run the sample start the projects Sample.TimeApi and Sample.MainApi. To gener
 ```bash
 watch -n 1 curl --request  GET  http://localhost:5001/api/dbtime
 ```
+
+## Where to go next
+
+- [Back to overview](./README.md)
+- [Scenario 3: Asynchronous transactions](./scenario3.md)
