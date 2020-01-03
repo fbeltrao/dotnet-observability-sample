@@ -2,7 +2,7 @@
 
 This document takes a look at current options to implement observability in .NET Core stack.
 
-**DISCLAIMER 1**: I am familiar with Azure Application Insights. I don't have the same experience with the OSS options out there (Jaeger, Zipkin, ELK, Prometheus, Grafana), therefore details about their implementation will be limited to Jaeger and Prometheus (at least for now).
+**DISCLAIMER 1**: I am familiar with Azure Application Insights. I don't have the same experience with the OSS options out there, therefore the sample code covers only Jaeger and Prometheus (at least for now).
 
 **DISCLAIMER 2**: At the time of writing OpenTelemetry .NET SDK is in alpha stage, available through nightly builds. The sample project might stop working as the SDK matures and breaking changes are introduced.
 
@@ -93,12 +93,12 @@ Before continue reading, **please go through the 3 sample scenarios**.
 
 ## Conclusion
 
-OpenTelemetry is positioning itself as a strong candidate as a standard API for tracing and metrics collection. That becomes even more important when building polyglot systems as OpenTelemetry SDK supports multiple languages using the same idiom.
+OpenTelemetry is positioning itself as a strong candidate as a standard API for tracing and metrics collection. That becomes even more important when building polyglot systems as OpenTelemetry SDK supports multiple languages using the same idiom (even though other vendors usually support multiple languages).
 
-The short term problem is the SDK status and missing features. Here a matrix comparing OpenTelemetry and Azure Application Insights:
+The short term problem are related to the early stage of the SDK, reflecting in missing features and production ready versions. Here a matrix comparing OpenTelemetry and Azure Application Insights:
 
 |SDK|State|Http|Sql|Azure Services|Exporters|
-|-|-|-|-|-|-|-|-|
+|-|-|-|-|-|-|
 |[Application Insights](https://github.com/microsoft/ApplicationInsights-dotnet)|GA|Yes|Yes|Yes|Application Insights|
 |[Open Telemetry](https://github.com/open-telemetry/opentelemetry-dotnet)|Alpha (December 2019)|Yes|No|Yes|Application Insights<br/>Jaeger</br>Zipkin<br/>Stackdriver<br/>Prometheus<br/>[and more](https://github.com/open-telemetry/opentelemetry-dotnet#exporters-packages)
 
@@ -108,7 +108,7 @@ When choosing a observability platform I, whenever possible, prefer to stick wit
 
 However, some projects have dependencies on specific vendors (i.e. Prometheus metrics for scaling or progressive deployment), which limits the choices.
 
-Another deciding factor is having the requirement to minimize vendor locking, allowing the system to be agnostic of hosting environment. In that case, sticking with an OSS solution is favoured.
+Another deciding factor is minimizing vendor locking, allowing the system to be agnostic of hosting environment. In that case, sticking with an OSS solution is favoured.
 
 ## Appendix
 
