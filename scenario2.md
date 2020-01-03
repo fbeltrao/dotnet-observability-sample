@@ -1,6 +1,6 @@
 # Scenario 2: REST API call chain
 
-This scenario is an evolution from Scenario 1, containing a REST API in front of the time API. In this case trace will have to be transport between two processes over HTTP.
+This scenario is an evolution from Scenario 1, containing a REST API in front of the existing Time REST API. In this case trace will have to be transport between two processes over HTTP.
 
 ![Sample scenario 2](media/02-sample-scenario.png)
 
@@ -8,7 +8,7 @@ This scenario is an evolution from Scenario 1, containing a REST API in front of
 
 The additional requirement is:
 
-1. End to end transaction details containing both REST APIs and the SQL dependency
+1. End-to-end transaction details containing both REST APIs and the SQL dependency
 
 ## Implementation
 
@@ -25,7 +25,7 @@ public static void Main(string[] args)
 
 The class `System.Diagnostics.Activity` is used by libraries to generate traces that can be observed by Diagnostic Listeners in order to generate spans/operations according to the tracing backend of choice. Examples are [Http Client](https://github.com/dotnet/corefx/blob/master/src/System.Diagnostics.DiagnosticSource/src/HttpCorrelationProtocol.md) and [Azure Service Bus](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-end-to-end-tracing).
 
- As mentioned before, correlation happens by having spans sharing the same TraceID. To propagate the traceId used in first span http request headers are used. The forwarded value will then be used to argument new traces, correlating with the value used by the caller.
+ As mentioned before, correlation happens by having spans sharing the same TraceID. To propagate the traceId used in first span, http request headers are used. The forwarded value will then be used to argument new traces, correlating with the value used by the caller.
 
 |Name|SpanId|ParentId|TraceId|
 |-|-|-|-|
@@ -40,12 +40,12 @@ The header propagating the correlation is named `traceparent`, as [defined by W3
 00-cd4262a7f7adf040bdd892959cf8c4fc-4a28d39ff0e725f2-01
 ```
 
-As you can observe there are 4 fields in the header value, separated by a '-':
+There are 4 fields in the header value, separated by a '-':
 
 - [Version](https://www.w3.org/TR/trace-context-1/#version): currently 00
 - [TraceId](https://www.w3.org/TR/trace-context-1/#trace-id): The trace identifier started by caller
 - [ParentId](https://www.w3.org/TR/trace-context-1/#parent-id): The span identifier that originated the call
-- [Trace flags](https://www.w3.org/TR/trace-context-1/#sampled-flag): current version only supported the flag `sampled` which indicates if the caller is sampling the request
+- [Trace flags](https://www.w3.org/TR/trace-context-1/#sampled-flag): current version only supported the flag `sampled`, which indicates if the caller is sampling the request
 
 ## Requirement validation
 
@@ -63,7 +63,7 @@ The same applies to Application Insights:
 
 ![Application Insights 2 web apis tracing](media/02-ai-http-header-tracing.png)
 
-The dependency graph in Application Insights is available under Application Map:
+The dependency graph in Application Insights is available under Application Map, displaying calls counter, avg. duration and error percentage:
 
 ![Application Insights Application Map](media/02-ai-dependencygraph-400.png)
 

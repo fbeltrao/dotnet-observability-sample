@@ -1,6 +1,6 @@
 # Scenario 3: Asynchronous transactions
 
-This scenario covers asynchronous transactions using RabbitMQ queues. In that case the correlation is our responsibility.
+This scenario covers asynchronous transactions using RabbitMQ queues. In this scenario, propagating correlated trace is our responsibility.
 
 ![Sample Scenario 3](media/03-sample-scenario.png)
 
@@ -12,7 +12,7 @@ This scenario covers asynchronous transactions using RabbitMQ queues. In that ca
 
 ## Implementation
 
-It is necessary to write custom code to correlate RabbitMQ message consumption with the trace that generated the message. The sample application uses RabbitMQ message headers to include the trace parent of a each message.
+It is necessary to write custom code to correlate RabbitMQ message consumption with the trace that generated the message. The sample application uses RabbitMQ message headers to include the trace parent of each message.
 
 In publisher:
 
@@ -57,9 +57,9 @@ using (var operation = telemetryClient.StartOperation<RequestTelemetry>("Process
 
 The requirement to track RabbitMQ publishing also requires additional code. The easier option is to use the target SDK and create spans/operations before calling RabbitMQ (as we did for SQL server in Open Telemetry).
 
-The second option is to create what a SDK provider would have to in order to make simplify trace collector implementation. Through the usage of System.Diagnostics.Activity the activities are created. The actual creation of spans happens by listening to the diagnostics source.
+The second option is to create System.Diagnostics.Activity objects, as a SDK provider would do. Collectors to OpenTelemetry or Application Insights subscribe to those activities, creating the the corresponding span (or dependency in Application Insights).
 
-Code added to RabbitMQ publisher to generate activities:
+This is the code added to RabbitMQ publisher to generate an activity:
 
 ```C#
 static DiagnosticSource diagnosticSource = new DiagnosticListener("Sample.RabbitMQ");
@@ -85,9 +85,9 @@ public void Publish(string message, string traceId, string spanId)
 }
 ```
 
-The collector needs to subscribe to diagnostics source and create the appropriate target SDK span object. The sample project has a simplified implementation. For production quality please refer to OpenTelemetry and/or Application Insights built-in collectors and this [user guide](https://github.com/dotnet/corefx/blob/master/src/System.Diagnostics.DiagnosticSource/src/ActivityUserGuide.md).
+The sample project contains a simplified collector implementation for Application Insights and OpenTelemetry. For production quality please refer to OpenTelemetry and/or Application Insights built-in collectors and this [user guide](https://github.com/dotnet/corefx/blob/master/src/System.Diagnostics.DiagnosticSource/src/ActivityUserGuide.md).
 
-For OpenTelemetry this is how it looks like:
+For OpenTelemetry, this is how it looks like:
 
 ```C#
 public class RabbitMQListener : ListenerHandler
@@ -112,7 +112,36 @@ subscriber = new DiagnosticSourceSubscriber(new RabbitMQListener("Sample.RabbitM
 subscriber.Subscribe();
 ```
 
-The metrics requirements is simple to achieve using Application insights SDK:
+To fulfill metrics requirements using OpenTelemetry, the sample application uses a Prometheus exporter.
+
+```c#
+var prometheusExporterOptions = new PrometheusExporterOptions()
+{
+    Url = "http://+:9184/metrics/",
+};
+
+var prometheusExporter = new PrometheusExporter(prometheusExporterOptions);
+var simpleProcessor = new UngroupedBatcher(prometheusExporter, TimeSpan.FromSeconds(5));
+var meterFactory = MeterFactory.Create(simpleProcessor);
+var meter = meterFactory.GetMeter("Sample App");
+var counter = meter.CreateInt64Counter("Enqueued Item");
+
+// Calling Start() will start a http handler on http://localhost:9184/metrics/
+prometheusExporter.Start();
+
+
+// Adding to the counter
+var context = default(SpanContext);
+var labelSet = new Dictionary<string, string>() 
+{
+    { "Source", source }
+};
+
+counter.Add(context, 1L, meter.GetLabelSet(labelSet));
+
+```
+
+Application Insights SDK also provides support to metrics, as the code below demonstrates:
 
 ```C#
 // Create the metric with custom dimension "Source"
@@ -140,13 +169,13 @@ As displayed above, the `Publish to RabbitMQ` activity has it's own span, for bo
 
 ### 3. Have metrics aggregating enqueued items by source
 
-In the sample application metrics have been implemented with OpenTelemetry (Prometheus exporter) and Application Insights (through the SDK).
+In the sample application, metrics have been implemented with OpenTelemetry (Prometheus exporter) and Application Insights (through the SDK).
 
 The metrics using Prometheus (and Grafana for visualization) looks like this:
 
 ![Grafana Custom Metrics](media/03-grafana-metrics.png)
 
-The raw metrics are available in [](http://localhost:9184/metrics), as the example below:
+The raw metrics are available in [http://localhost:9184/metrics](http://localhost:9184/metrics), as the example below:
 
 ```text
 # HELP Enqueued_ItemSample AppEnqueued Item
