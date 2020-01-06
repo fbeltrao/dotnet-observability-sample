@@ -30,7 +30,7 @@ The sample application contained in this repository only takes a look at observa
 
 ### Logging
 
-.NET Core provides a standard API supporting logging, as described [here](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/). There is support for 3rd party providers, allowing you to choose the logging backend of your preference.
+.NET Core provides a standard API supporting logging, as described [here](https://docs.microsoft.com/aspnet/core/fundamentals/logging/). Logging in .NET Core is [distributed tracing aware](https://devblogs.microsoft.com/aspnet/improvements-in-net-core-3-0-for-troubleshooting-and-monitoring-distributed-apps/) out of the box. There is support for 3rd party providers, allowing you to choose the logging backend of your preference.
 
 When deciding a logging platform, consider the following features:
 
@@ -40,7 +40,7 @@ When deciding a logging platform, consider the following features:
 - Configurable: allows changing verbosity without code changes (based on log level and/or scope)
 - [Nice to have] Integrated: integrated into distributed tracing
 
-In the provided sample application [Azure Application Insights logging extension](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-3.1#azure-application-insights-trace-logging) is used. The extension exports logs into Application Insights.
+In the provided sample application [Azure Application Insights logging extension](https://docs.microsoft.com/aspnet/core/fundamentals/logging/?view=aspnetcore-3.1#azure-application-insights-trace-logging) is used. The extension exports logs into Application Insights.
 
 ### Tracing and Metrics
 
@@ -48,7 +48,7 @@ In September 2019 [OpenTelemetry](https://opentelemetry.io/) CNCF sandbox projec
 
 Before OpenTelemetry (or it's predecessors OpenCensus and OpenTracing), adding observability would often mean adding proprietary SDKs (in)directly to the code base.
 
-The current state of the OpenTelemetry .NET SDK is still in alpha. In the sample code provided I am using Application Insights SDK as well to compare results with a tool I am familiar with.
+The current state of the OpenTelemetry .NET SDK is still in alpha.  Azure Monitor Application Insights team investing in OpenTelemetry as a next step of Azure Monitor SDKs evolution. In the sample code provided I am using Application Insights SDK as well to compare results with a tool I am familiar with.
 
 ### Quick explanation about tracing
 
@@ -56,7 +56,7 @@ Tracing collects required information to enable the observation of a transaction
 
 Simplified, [OpenTelemetry collects traces using spans](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/overview.md) (operations in Application Insights). A span has a unique identifier (SpanId, 16 characters, 8 bytes) and a trace identifier (TraceId, 32 characters, 16 bytes). The trace identifier is used to correlate all operations for a given transaction. A span can contain 0..* children spans.
 
-Application Insights have different names for spans and their properties. The table below has a summary of them:
+Application Insights have different names for spans and their identifiers. The table below has a summary of them:
 
 |Application Insights|OpenTracing|
 |-|-|
@@ -72,13 +72,13 @@ In order to collect information in the sample application the following librarie
 
 - [Azure Application Insight](https://github.com/microsoft/ApplicationInsights-dotnet)
 - [OpenTelemetry](https://github.com/open-telemetry/opentelemetry-dotnet) nightly builds (in alpha at the time of writing)
-- [Standard logging provided by .NET Core](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/)
+- [Standard logging provided by .NET Core](https://docs.microsoft.com/aspnet/core/fundamentals/logging/)
 
-Collected information can be exported to [Azure Application Insights](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview) (Logs, Tracing, Metrics), [Jaeger](https://www.jaegertracing.io/) (Tracing) or [Prometheus](https://prometheus.io/) (Metrics).
+Collected information can be exported to [Azure Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) (Logs, Tracing, Metrics), [Jaeger](https://www.jaegertracing.io/) (Tracing) or [Prometheus](https://prometheus.io/) (Metrics).
 
 For information on how to **bootstrap a project with OpenTelemetry** check the [documentation](https://github.com/open-telemetry/opentelemetry-dotnet).
 
-To **bootstrap your project with Application Insights** check the SDK documentation [here](https://docs.microsoft.com/en-us/azure/azure-monitor/app/asp-net-core) and [here](https://docs.microsoft.com/en-us/azure/azure-monitor/app/worker-service) for non-http applications. Keep in mind that OpenTelemetry also supports Azure Application Insights as one of the collector destinations.
+To **bootstrap your project with Application Insights** check the SDK documentation [here](https://docs.microsoft.com/azure/azure-monitor/app/asp-net-core) and [here](https://docs.microsoft.com/azure/azure-monitor/app/worker-service) for non-http applications. Keep in mind that OpenTelemetry also supports Azure Application Insights as one of the collector destinations.
 
 ## Sample scenarios
 
@@ -106,7 +106,7 @@ For applications going to production soon sticking with proprietary SDKs is prob
 
 When choosing a observability platform I, whenever possible, prefer to stick with a centralized solution containing all collected information. Azure Monitor / Application Insights and Stackdriver are some of the examples. The sample project demonstrates how Application Insights displays logs in the scope of a trace.
 
-However, some projects have dependencies on specific vendors (i.e. Prometheus metrics for scaling or progressive deployment), which limits the choices.
+However, some projects have dependencies on specific vendors (i.e. Prometheus metrics for scaling or progressive deployment), which limits the choices. OpenTelemetry, as a higher level abstraction of instrumented code, has a promise to allow combining various exporters in a single app. So progressive deployment can be controlled with the subset of metrics collected by Prometheus while bigger set of metrics, plus logs and traces are exported to the centralized observability platform.
 
 Another deciding factor is minimizing vendor locking, allowing the system to be agnostic of hosting environment. In that case, sticking with an OSS solution is favoured.
 
