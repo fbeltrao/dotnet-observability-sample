@@ -93,7 +93,17 @@ docker run -d --name jaeger \
         jaegertracing/all-in-one
 ```
 
-- When using Application Insights (set USE_APPLICATIONINSIGHTS=1 and USE_OPENTELEMETRY=0), ensure the instrumentation key is set (APPINSIGHTS_INSTRUMENTATIONKEY). The sample project has a simple way to provide settings to all applications. In folder ./shared create a file called `appsettings.Development.json`.
+- When using Application Insights, ensure the instrumentation key is set (a simpler way to provide settings to all applications is to create file appsettings.Development.json in folder ./shared):
+
+```json
+{
+    "SampleApp": {
+        "UseApplicationInsights": "true",
+        "UseOpenTelemetry": "false",
+        "ApplicationInsightsInstrumentationKey": "<Instrumentation key>"
+    }
+}
+```
 
 To run the sample start the projects Sample.TimeApi and Sample.MainApi. To generate load use the following script:
 

@@ -27,6 +27,7 @@ namespace Sample.RabbitMQProcessor
 
                     services.AddHttpClient();
                     services.AddHostedService<WebQueueConsumerHostedService>();
+                    services.AddSampleAppOptions(hostContext.Configuration);
                 })
                 .ConfigureLogging(SampleServiceCollectionExtensions.ConfigureLogging)
                 .ConfigureAppConfiguration((builder) => SampleServiceCollectionExtensions.ConfigureAppConfiguration(builder, args, typeof(Program).Assembly));
