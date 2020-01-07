@@ -22,10 +22,12 @@ namespace Sample.TimeApi
         {
             services.AddControllers();
             services.AddSingleton<IDeviceRepository, SqlDeviceRepository>();
-
+            services.AddSampleAppOptions(Configuration);
             services.AddWebSampleTelemetry(Configuration);
 
-            if (Configuration.UseOpenTelemetry())
+            var sampleAppOptions = Configuration.GetSampleAppOptions();
+
+            if (sampleAppOptions.UseOpenTelemetry)
             {
                 services.AddSingleton<SqlDeviceRepository>();
                 services.AddSingleton<IDeviceRepository, OpenTelemetryCollectingDeviceRepository<SqlDeviceRepository>>();

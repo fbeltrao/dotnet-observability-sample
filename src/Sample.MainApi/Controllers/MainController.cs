@@ -1,21 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
 using Microsoft.Extensions.DependencyInjection;
 using Sample.Common;
-using Newtonsoft.Json;
 using System.Diagnostics;
 using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.ApplicationInsights.Extensibility;
 using System.Threading.Channels;
 using System.Threading;
+using Microsoft.Extensions.Options;
 
 namespace Sample.MainApi.Controllers
 {
@@ -24,23 +19,21 @@ namespace Sample.MainApi.Controllers
     public class MainController : ControllerBase
     {
         private readonly IHttpClientFactory httpClientFactory;
-        private readonly string apiUrl;
+        private readonly string timeApiUrl;
         private readonly ILogger logger;
         private readonly Metrics metrics;
         private readonly ChannelWriter<HelloRequest> channelWriter;
         private readonly Tracer tracer;
         private readonly TelemetryClient telemetryClient;
 
-        public MainController(IConfiguration configuration,
+        public MainController(IOptions<SampleAppOptions> sampleAppOptions,
                               IHttpClientFactory httpClientFactory,
                               ILogger<MainController> logger,
                               IServiceProvider serviceProvider,
                               Metrics metrics,
                               ChannelWriter<HelloRequest> channelWriter)
         {
-            this.apiUrl = configuration["ApiUrl"];
-            if (string.IsNullOrWhiteSpace(apiUrl))
-                apiUrl = "http://localhost:5002";
+            this.timeApiUrl = sampleAppOptions.Value.TimeAPIUrl;
             this.httpClientFactory = httpClientFactory;
             this.logger = logger;
             this.metrics = metrics;
@@ -61,7 +54,7 @@ namespace Sample.MainApi.Controllers
 
             FailGenerator.FailIfNeeded(1);
 
-            var apiFullUrl = $"{apiUrl}/api/time/localday";
+            var apiFullUrl = $"{timeApiUrl}/api/time/localday";
             if (logger.IsEnabled(LogLevel.Debug))
             {
                 logger.LogDebug("Getting time from {url}", apiFullUrl);
@@ -87,7 +80,7 @@ namespace Sample.MainApi.Controllers
 
             FailGenerator.FailIfNeeded(1);
 
-            var apiFullUrl = $"{apiUrl}/api/time/dbtime";
+            var apiFullUrl = $"{timeApiUrl}/api/time/dbtime";
             return await httpClientFactory.CreateClient().GetStringAsync(apiFullUrl);
         }
 

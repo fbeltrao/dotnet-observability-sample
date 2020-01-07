@@ -11,8 +11,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.ApplicationInsights.Extensibility;
 using System.IO;
 using OpenTelemetry.Exporter.Prometheus;
-using OpenTelemetry.Metrics.Export;
-using OpenTelemetry.Metrics.Configuration;
+using OpenTelemetry.Exporter.Jaeger;
+using OpenTelemetry.Exporter.Zipkin;
+using Microsoft.Extensions.Options;
 
 namespace Sample.Common
 {
@@ -20,86 +21,103 @@ namespace Sample.Common
     {
         public static IServiceCollection AddWebSampleTelemetry(this IServiceCollection services, IConfiguration configuration, Action<TracerBuilder> traceBuilder = null)
         {
-            if (configuration.UseOpenTelemetry())
-                services.AddSampleOpenTelemetry(configuration, traceBuilder);
+            var sampleAppOptions = configuration.GetSampleAppOptions();
 
-            if (configuration.UseApplicationInsights())
-                services.AddSampleApplicationInsights(isWeb: true, configuration);
+            if (sampleAppOptions.UseOpenTelemetry)
+                services.AddSampleOpenTelemetry(sampleAppOptions, configuration, traceBuilder);
+
+            if (sampleAppOptions.UseApplicationInsights)
+                services.AddSampleApplicationInsights(isWeb: true, sampleAppOptions, configuration);
 
             return services;
         }
 
         public static IServiceCollection AddWorkerSampleTelemetry(this IServiceCollection services, IConfiguration configuration)
         {
-            if (configuration.UseOpenTelemetry())
-                services.AddSampleOpenTelemetry(configuration);
+            var telemetryOptions = configuration.GetSampleAppOptions();
 
-            if (configuration.UseApplicationInsights())
-                services.AddSampleApplicationInsights(isWeb: false, configuration);
+            if (telemetryOptions.UseOpenTelemetry)
+                services.AddSampleOpenTelemetry(telemetryOptions, configuration);
+
+            if (telemetryOptions.UseApplicationInsights)
+                services.AddSampleApplicationInsights(isWeb: false, telemetryOptions, configuration);
 
             return services;
         }
 
 
-        static IServiceCollection AddSampleOpenTelemetry(this IServiceCollection services, IConfiguration configuration, Action<TracerBuilder> traceBuilder = null)
+        static IServiceCollection AddSampleOpenTelemetry(this IServiceCollection services, SampleAppOptions sampleAppOptions, IConfiguration configuration, Action<TracerBuilder> traceBuilder = null)
         {
+            var openTelemetryConfigSection = configuration.GetSection("OpenTelemetry");
+            var jaegerConfigSection = openTelemetryConfigSection.GetSection("Jaeger");
+            services.Configure<JaegerExporterOptions>(jaegerConfigSection);
+
+            var zipkinConfigSection = openTelemetryConfigSection.GetSection("Zipkin");
+            services.Configure<ZipkinTraceExporterOptions>(zipkinConfigSection);            
+
             // setup open telemetry
-            services.AddOpenTelemetry(builder =>
+            services.AddOpenTelemetry((sp, builder) =>
             {
                 var serviceName = OpenTelemetryExtensions.TracerServiceName;
 
                 var exporterCount = 0;
 
-                // To start zipkin:
-                // docker run -d -p 9411:9411 openzipkin/zipkin
-                var zipkinUrl = configuration.GetZipkinUrl();
-                if (!string.IsNullOrWhiteSpace(zipkinUrl))
+                if (zipkinConfigSection.Exists())
                 {
-                    exporterCount++;
-
-                    builder.UseZipkin(o =>
+                    var zipkinOptions = sp.GetService<IOptions<ZipkinTraceExporterOptions>>();
+                    if (zipkinOptions.Value != null && zipkinOptions.Value.Endpoint != null)
                     {
-                        o.Endpoint = new Uri(zipkinUrl);
-                        o.ServiceName = serviceName;
-                    });
-                }
+                        // To start zipkin:
+                        // docker run -d -p 9411:9411 openzipkin/zipkin
+                        exporterCount++;
 
-                var appInsightsKey = configuration.GetApplicationInsightsInstrumentationKeyForOpenTelemetry();
-                if (!string.IsNullOrWhiteSpace(appInsightsKey))
+                        builder.UseZipkin(o =>
+                        {
+                            o.Endpoint = zipkinOptions.Value.Endpoint;
+                            o.ServiceName = serviceName;
+                        });
+                    }
+                }
+            
+
+                if (!string.IsNullOrWhiteSpace(sampleAppOptions.ApplicationInsightsForOpenTelemetryInstrumentationKey))
                 {
                     exporterCount++;
 
                     builder.UseApplicationInsights(o =>
                     {
-                        o.InstrumentationKey = appInsightsKey;
+                        o.InstrumentationKey = sampleAppOptions.ApplicationInsightsForOpenTelemetryInstrumentationKey;
                         o.TelemetryInitializers.Add(new CloudRoleTelemetryInitializer());
                     });
                 }
 
-                // Running jaeger with docker
-                // docker run -d--name jaeger \
-                //  -e COLLECTOR_ZIPKIN_HTTP_PORT = 19411 \
-                //  -p 5775:5775 / udp \
-                //  -p 6831:6831 / udp \
-                //  -p 6832:6832 / udp \
-                //  -p 5778:5778 \
-                //  -p 16686:16686 \
-                //  -p 14268:14268 \
-                //  -p 19411:19411 \
-                //  jaegertracing/all -in-one:1.15
-                var jaegerHost = configuration.GetJaegerHost();
-                if (!string.IsNullOrWhiteSpace(jaegerHost))
+                if (jaegerConfigSection.Exists())
                 {
-                    exporterCount++;
-
-                    builder.UseJaeger(o =>
+                    // Running jaeger with docker
+                    // docker run -d --name jaeger \
+                    //  -e COLLECTOR_ZIPKIN_HTTP_PORT=19411 \
+                    //  -p 5775:5775/udp \
+                    //  -p 6831:6831/udp \
+                    //  -p 6832:6832/udp \
+                    //  -p 5778:5778 \
+                    //  -p 16686:16686 \
+                    //  -p 14268:14268 \
+                    //  -p 19411:19411 \
+                    //  jaegertracing/all-in-one
+                    var jaegerOptions = sp.GetService<IOptions<JaegerExporterOptions>>();
+                    if (jaegerOptions.Value != null && !string.IsNullOrWhiteSpace(jaegerOptions.Value.AgentHost))
                     {
-                        o.ServiceName = serviceName;
-                        o.AgentHost = jaegerHost;
-                        o.AgentPort = 6831;
-                        // o.AgentPort = 14268;
-                        o.MaxPacketSize = 1000;
-                    });
+                        exporterCount++;
+
+                        builder.UseJaeger(o =>
+                        {
+                            o.ServiceName = serviceName;
+                            o.AgentHost = jaegerOptions.Value.AgentHost;
+                            o.AgentPort = jaegerOptions.Value.AgentPort;
+                            o.MaxPacketSize = jaegerOptions.Value.MaxPacketSize;
+                            o.ProcessTags = jaegerOptions.Value.ProcessTags;
+                        });
+                    }
                 }
 
                 if (exporterCount == 0)
@@ -107,48 +125,48 @@ namespace Sample.Common
                     throw new Exception("No sink for open telemetry was configured");
                 }
 
-                builder.SetSampler(new AlwaysSampleSampler());
-                builder.AddDependencyCollector(config =>
-                {
-                    config.SetHttpFlavor = true;
-                });
-                builder.AddRequestCollector(o =>
-                {
-                });
-                builder.SetResource(new Resource(new Dictionary<string, object>
-                {
-                    { "service.name", serviceName }
-                }));
+                builder
+                    .SetSampler(new AlwaysSampleSampler())
+                    .AddDependencyCollector(config =>
+                    {
+                        config.SetHttpFlavor = true;
+                    })
+                    .AddRequestCollector()
+                    .SetResource(new Resource(new Dictionary<string, object>
+                    {
+                        { "service.name", serviceName }
+                    }));
 
                 traceBuilder?.Invoke(builder);
             });
 
-            if (!string.IsNullOrWhiteSpace(configuration.GetPrometheusExportURL()))
+            
+            var prometheusConfigSection = openTelemetryConfigSection.GetSection("Prometheus");
+            if (prometheusConfigSection.Exists())
             {
-                var prometheusExporterOptions = new PrometheusExporterOptions()
+                var prometheusExporterOptions = new PrometheusExporterOptions();
+                prometheusConfigSection.Bind(prometheusExporterOptions);
+
+                if (!string.IsNullOrWhiteSpace(prometheusExporterOptions.Url))
                 {
-                    Url = configuration.GetPrometheusExportURL(),
-                };
+                    var prometheusExporter = new PrometheusExporter(prometheusExporterOptions);
+                    services.AddSingleton(prometheusExporter);
 
-                var prometheusExporter = new PrometheusExporter(prometheusExporterOptions);
-                services.AddSingleton(prometheusExporter);
-
-
-                // Add start/stop lifetime support
-                services.AddHostedService<PromotheusExporterHostedService>();
-
+                    // Add start/stop lifetime support
+                    services.AddHostedService<PromotheusExporterHostedService>();
+                }
             }
 
             return services;
         }
 
-        static IServiceCollection AddSampleApplicationInsights(this IServiceCollection services, bool isWeb, IConfiguration configuration)
+        static IServiceCollection AddSampleApplicationInsights(this IServiceCollection services, bool isWeb, SampleAppOptions sampleAppOptions, IConfiguration configuration)
         {
             if (isWeb)
             {
                 services.AddApplicationInsightsTelemetry(o =>
                 {
-                    o.InstrumentationKey = configuration.GetApplicationInsightsInstrumentationKey();
+                    o.InstrumentationKey = sampleAppOptions.ApplicationInsightsInstrumentationKey;
                     o.ApplicationVersion = ApplicationInformation.Version.ToString();
                 });
             }
@@ -156,7 +174,7 @@ namespace Sample.Common
             {
                 services.AddApplicationInsightsTelemetryWorkerService(o =>
                 {
-                    o.InstrumentationKey = configuration.GetApplicationInsightsInstrumentationKey();
+                    o.InstrumentationKey = sampleAppOptions.ApplicationInsightsInstrumentationKey;
                     o.ApplicationVersion = ApplicationInformation.Version.ToString();
                 });
             }
@@ -168,24 +186,28 @@ namespace Sample.Common
 
         public static void ConfigureLogging(HostBuilderContext hostBuilderContext, ILoggingBuilder loggingBuilder)
         {
-            if (hostBuilderContext.Configuration.UseApplicationInsights())
+            var telemetryOptions = hostBuilderContext.Configuration.GetSampleAppOptions();
+
+            if (telemetryOptions.UseApplicationInsights)
             {
-                loggingBuilder.AddApplicationInsights(hostBuilderContext.Configuration.GetApplicationInsightsInstrumentationKey());
+                loggingBuilder.AddApplicationInsights(telemetryOptions.ApplicationInsightsInstrumentationKey);                
             }
+
+            loggingBuilder.AddConsole((options) => { options.IncludeScopes = true; });
         }
 
         public static void ConfigureAppConfiguration(IConfigurationBuilder builder, string[] args, Assembly mainAssembly)
         {
+            builder.SetBasePath(Directory.GetCurrentDirectory());
             builder.AddJsonFile("appsettings.json", optional: true);
             builder.AddEnvironmentVariables();
-            //builder.AddCommandLine(args);
 
 #if DEBUG
-            // Had to add this if you use a shared file when debugging
+            // Needed to add this when using a shared file when debugging
             // It tries to get from the directory where the project is
-            var path = Path.GetDirectoryName(mainAssembly.Location);
-            var envJsonFile = Path.Combine(path, $"appsettings.Development.json");
-            builder.AddJsonFile(envJsonFile, optional: true);
+            //var path = Path.GetDirectoryName(mainAssembly.Location);
+            //var envJsonFile = Path.Combine(path, $"appsettings.Development.json");
+            builder.AddJsonFile("appsettings.Development.json", optional: true);
 #endif
         }
     }

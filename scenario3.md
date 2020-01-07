@@ -230,8 +230,17 @@ docker-compose up
 
 To visualize it, open Grafana on your browser at [http://localhost:3000](http://localhost:3000) (credentials are admin/password1). Add Prometheus as data source (URL is http://prometheus:9090).
 
+- When using Application Insights, ensure the instrumentation key is set (a simpler way to provide settings to all applications is to create file appsettings.Development.json in folder ./shared):
 
-- When using Application Insights (set USE_APPLICATIONINSIGHTS=1 and USE_OPENTELEMETRY=0), ensure the instrumentation key is set (APPINSIGHTS_INSTRUMENTATIONKEY). The sample project has a simple way to provide settings to all applications. In folder ./shared create a file called `appsettings.Development.json`.
+```json
+{
+    "SampleApp": {
+        "UseApplicationInsights": "true",
+        "UseOpenTelemetry": "false",
+        "ApplicationInsightsInstrumentationKey": "<Instrumentation key>"
+    }
+}
+```
 
 To run the sample start the projects Sample.TimeApi, Sample.MainApi and Sample.RabbitMQProcessor. To generate load use the following scripts:
 

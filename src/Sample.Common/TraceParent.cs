@@ -75,7 +75,7 @@ namespace Sample.Common
             }
 
             // TODO: validate each item
-            ActivityTraceFlags flags = vals[3] == "01" ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
+            var flags = vals[3] == "01" ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
             return new TraceParent(vals[1], vals[2], flags, vals[0]);
         }
     }

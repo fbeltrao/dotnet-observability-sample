@@ -2,7 +2,6 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
@@ -16,6 +15,7 @@ using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using System.Text.Json;
 using System.Text;
+using Microsoft.Extensions.Options;
 
 namespace Sample.RabbitMQProcessor
 {
@@ -26,23 +26,20 @@ namespace Sample.RabbitMQProcessor
         private IModel channel;
         private AsyncEventingBasicConsumer consumer;
 
-        private string apiUrl;
+        private string timeApiURL;
         private readonly ILogger logger;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly Tracer tracer;
         private readonly TelemetryClient telemetryClient;
         private readonly JsonSerializerOptions jsonSerializerOptions;
 
-        public WebQueueConsumerHostedService(IConfiguration configuration, ILogger<WebQueueConsumerHostedService> logger, IHttpClientFactory httpClientFactory, IServiceProvider serviceProvider)
+        public WebQueueConsumerHostedService(IOptions<SampleAppOptions> sampleAppOptions, ILogger<WebQueueConsumerHostedService> logger, IHttpClientFactory httpClientFactory, IServiceProvider serviceProvider)
         {
             // To start RabbitMQ on docker:
             // docker run -d --hostname -rabbit --name test-rabbit -p 15672:15672 -p 5672:5672 rabbitmq:3-management
-            this.rabbitMQHostName = configuration.GetRabbitMQHostName();
-            
+            this.rabbitMQHostName = sampleAppOptions.Value.RabbitMQHostName;
 
-            this.apiUrl = configuration["ApiUrl"];
-            if (string.IsNullOrWhiteSpace(apiUrl))
-                apiUrl = "http://localhost:5002";
+            this.timeApiURL = sampleAppOptions.Value.TimeAPIUrl;
             this.logger = logger;
             this.httpClientFactory = httpClientFactory;
             var tracerFactory = serviceProvider.GetService<TracerFactoryBase>();
@@ -51,7 +48,6 @@ namespace Sample.RabbitMQProcessor
             this.jsonSerializerOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
-
             };
         }
 
@@ -108,7 +104,7 @@ namespace Sample.RabbitMQProcessor
 
                     using (logger.BeginScope("processing message {correlationId}", traceParent.TraceId))
                     {
-                        var apiFullUrl = $"{apiUrl}/api/time/dbtime";
+                        var apiFullUrl = $"{timeApiURL}/api/time/dbtime";
                         var time = await httpClientFactory.CreateClient().GetStringAsync(apiFullUrl);
 
                         // Get the payload

@@ -33,6 +33,7 @@ namespace Sample.MainApi
             services.AddControllers();
             services.AddHttpClient();
             services.AddHostedService<HelloHostedService>();
+            services.AddSampleAppOptions(Configuration);
             services.AddSingleton<IAppMetrics, Metrics>();
             services.AddSingleton(x => (Metrics)x.GetRequiredService<IAppMetrics>());
             services.AddSingleton<IRabbitMQProducer, RabbitMQProducer>();
@@ -41,7 +42,9 @@ namespace Sample.MainApi
                 b.AddCollector(t => new RabbitMQCollector(t));
             });
 
-            if (Configuration.UseApplicationInsights())
+            var sampleAppOptions = Configuration.GetSampleAppOptions();
+
+            if (sampleAppOptions.UseApplicationInsights)
             {
                 services.AddSingleton<ITelemetryModule, ApplicationInsights.RabbitMQApplicationInsightsModule>();
             }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using Sample.Common;
 
@@ -17,9 +18,9 @@ namespace Sample.MainApi
         private IConnection connection;
         private IModel channel;
 
-        public RabbitMQProducer(IConfiguration configuration)
+        public RabbitMQProducer(IOptions<SampleAppOptions> telemetryOptions)
         {
-            HostName = configuration.GetRabbitMQHostName();
+            HostName = telemetryOptions.Value.RabbitMQHostName;
             QueueName = Constants.WebQueueName;
 
             this.connection = new ConnectionFactory
