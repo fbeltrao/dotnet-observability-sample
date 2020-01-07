@@ -3,6 +3,14 @@ using Microsoft.Extensions.Configuration;
 
 namespace Sample.Common
 {
+
+    public class TelemetryOptions
+    {
+        public string RabbitMQHostName { get; set; } = "localhost";
+        public bool UseOpenTelemetry { get; set; }
+        public bool UseApplicationInsights { get; set; }
+    }
+
     public static class ConfigurationExtensions
     {
         const string RabbitMQHostNameConfigKey = "RabbitMQHostName";
