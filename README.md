@@ -1,6 +1,6 @@
 # Implementing observability in .NET Core stack
 
-This document takes a look at current options to implement observability in .NET Core stack.
+This document takes a look at current options to implement observability in .NET Core stack. For a quick peek into the sample application check section [Quickly run sample application](#Quickly-run-sample-application)
 
 **DISCLAIMER 1**: I am familiar with Azure Application Insights. I don't have the same experience with the OSS options out there, therefore the sample code covers only Jaeger and Prometheus (at least for now).
 
@@ -90,6 +90,35 @@ For project setup information please check the source code or SDK documentation.
 - [Scenario 3: Asynchronous transactions](./scenario3.md)
 
 Before continue reading, **please go through the 3 sample scenarios**.
+
+## Quickly run sample application
+
+To quickly see the application running using pre-built docker images and docker-compose follow the guideline below:
+
+### Using OpenTelemetry
+
+1. Open terminal under `ready-to-run\sample`
+1. Execute `docker-compose up`
+1. Generate load with `watch -n 2 curl --request GET http://localhost:5001/api/enqueue/WebSiteA`
+1. View traces in [Jaeger](http://localhost:16686/)
+1. View metrics by searching for "Enqueued_Item" in [Prometheus](http://localhost:9090)
+1. Build dashboards in [Grafana](http://localhost:3000/) (admin/password1)
+
+### Using Application Insights SDK
+
+1. Open terminal under `ready-to-run\sample`
+2. Add .env file with following content:
+
+```env
+USE_APPLICATIONINSIGHTS=true
+USE_OPENTELEMETRY=false
+AI_INSTRUMENTATIONKEY=<ENTER-APPLICATION-INSIGHTS-INSTRUMENTATION-KEY>
+```
+
+3. Execute `docker-compose up`
+4. Generate load with `watch -n 2 curl --request GET http://localhost:5001/api/enqueue/WebSiteA`
+5. View logs, traces and metrics in Azure Portal Application Insights
+
 
 ## Conclusion
 

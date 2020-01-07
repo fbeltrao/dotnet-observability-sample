@@ -351,3 +351,5 @@ MigrationBackup/
 
 # development json files
 appsettings.Development.json
+
+.env

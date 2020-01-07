@@ -16,6 +16,7 @@ using Microsoft.ApplicationInsights.Extensibility;
 using System.Text.Json;
 using System.Text;
 using Microsoft.Extensions.Options;
+using RabbitMQ.Client.Exceptions;
 
 namespace Sample.RabbitMQProcessor
 {
@@ -51,22 +52,50 @@ namespace Sample.RabbitMQProcessor
             };
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var factory = new ConnectionFactory() { HostName = rabbitMQHostName, DispatchConsumersAsync = true };
-            this.connection = factory.CreateConnection();
-            this.channel = connection.CreateModel();
-            
-            channel.QueueDeclare(queue: Constants.WebQueueName, exclusive: false);
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    var factory = new ConnectionFactory() { HostName = rabbitMQHostName, DispatchConsumersAsync = true };
+                    this.connection = factory.CreateConnection();
+                    this.channel = connection.CreateModel();
 
-                
-            this.consumer = new AsyncEventingBasicConsumer(channel);
-            consumer.Received += ProcessWebQueueMessageAsync;
-            channel.BasicConsume(queue: Constants.WebQueueName,
-                                    autoAck: true,
-                                    consumer: consumer);
+                    channel.QueueDeclare(queue: Constants.WebQueueName, exclusive: false);
 
-            return Task.CompletedTask;
+                    this.consumer = new AsyncEventingBasicConsumer(channel);
+                    consumer.Received += ProcessWebQueueMessageAsync;
+                    channel.BasicConsume(queue: Constants.WebQueueName,
+                                            autoAck: true,
+                                            consumer: consumer);
+
+                    logger.LogInformation("RabbitMQ consumer started");
+                    return;
+                }
+                catch (BrokerUnreachableException ex)
+                {
+                    logger.LogError(ex, "Failed to connect to RabbitMQ. Trying again in 3 seconds");
+
+                    if (this.consumer != null && this.channel != null)
+                    {
+                        this.channel.BasicCancel(this.consumer.ConsumerTag);                        
+                    }
+
+                    this.channel?.Dispose();
+
+                    this.connection?.Dispose();
+
+
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                    }
+                }                
+            }
         }
 
         private async Task ProcessWebQueueMessageAsync(object sender, BasicDeliverEventArgs @event)
