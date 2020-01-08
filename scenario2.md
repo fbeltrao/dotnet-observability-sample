@@ -105,7 +105,12 @@ docker run -d --name jaeger \
 }
 ```
 
-To run the sample start the projects Sample.TimeApi and Sample.MainApi. To generate load use the following script:
+To run you can either:
+
+- debug from Visual Studio (start project -> docker-compose)
+- start from the terminal, using docker-compose (docker-compose up --build).
+
+To generate load use the following script:
 
 ```bash
 watch -n 1 curl --request  GET  http://localhost:5001/api/dbtime

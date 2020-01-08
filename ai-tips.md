@@ -38,7 +38,7 @@ To find end-to-end transactions in Azure Portal go to your Application Insights 
 
 ## 3) Getting the longest end-to-end operation executions
 
-Lists the longest end-to-end transaction times
+Lists the longest end-to-end transaction times including start, end, depth, total_duration
 
 ```kusto
 let endTime = (start: datetime, duration: int) { datetime_add("Millisecond", duration, start) };
@@ -49,9 +49,9 @@ requests
 | where timestamp >= startDate
 | project operation_Id
 | join kind=leftouter (requests) on $left.operation_Id == $right.operation_Id
-| summarize start=min(timestamp), end=max(endTime(timestamp, duration)) by operation_Id
-| project Name=operationName, operation_Id, start, end, timeInMs=datetime_diff("Millisecond", end, start)
-| order by timeInMs desc
+| summarize start=min(timestamp), end=max(endTime(timestamp, duration)), depth=dcount(cloud_RoleName) by operation_Id
+| project Name=operationName, operation_Id, start, end, depth, total_duration=datetime_diff("Millisecond", end, start)
+| order by total_duration desc
 ```
 
 ### Graph of end-to-end operation/durations per minute

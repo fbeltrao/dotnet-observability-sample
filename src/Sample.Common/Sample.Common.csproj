@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <ReleaseVersion>0.2</ReleaseVersion>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
 
@@ -25,5 +26,10 @@
     <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="0.2.0-alpha.151" />
     <PackageReference Include="OpenTelemetry.Collector.AspNetCore" Version="0.2.0-alpha.151" />
     <PackageReference Include="OpenTelemetry.Hosting" Version="0.2.0-alpha.151" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sample.RabbitMQCollector\Sample.RabbitMQCollector.csproj" />
   </ItemGroup>
 </Project>

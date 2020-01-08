@@ -1,20 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Sample.Common;
 using Sample.MainApi.HostedServices;
-using Sample.MainApi.OpenTelemetry;
 
 namespace Sample.MainApi
 {
@@ -39,14 +31,14 @@ namespace Sample.MainApi
             services.AddSingleton<IRabbitMQProducer, RabbitMQProducer>();
             services.AddWebSampleTelemetry(Configuration, (b) =>
             {
-                b.AddCollector(t => new RabbitMQCollector(t));
+                b.AddCollector(t => new RabbitMQCollector.OpenTelemetry.RabbitMQCollector(t));
             });
 
             var sampleAppOptions = Configuration.GetSampleAppOptions();
 
             if (sampleAppOptions.UseApplicationInsights)
             {
-                services.AddSingleton<ITelemetryModule, ApplicationInsights.RabbitMQApplicationInsightsModule>();
+                services.AddSingleton<ITelemetryModule, RabbitMQCollector.ApplicationInsights.RabbitMQApplicationInsightsModule>();
             }
 
             // Quick way to create channel

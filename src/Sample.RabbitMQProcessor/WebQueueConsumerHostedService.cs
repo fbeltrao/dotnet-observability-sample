@@ -17,6 +17,7 @@ using System.Text.Json;
 using System.Text;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client.Exceptions;
+using Sample.RabbitMQCollector;
 
 namespace Sample.RabbitMQProcessor
 {
@@ -100,38 +101,31 @@ namespace Sample.RabbitMQProcessor
 
         private async Task ProcessWebQueueMessageAsync(object sender, BasicDeliverEventArgs @event)
         {
-            //var correlationId = @event.BasicProperties.CorrelationId;
-            TraceParent traceParent = null;
-            if (@event.BasicProperties.Headers.TryGetValue(TraceParent.HeaderKey, out var rawTraceParent) && rawTraceParent is byte[] binRawTraceParent)
-            {
-                traceParent = TraceParent.CreateFromString(Encoding.UTF8.GetString(binRawTraceParent));
-            }
-            
+            // ExtractActivity creates the Activity setting the parent based on the RabbitMQ "traceparent" header
+            var activity = @event.ExtractActivity("Process single RabbitMQ message");
+
             ISpan span = null;
             IOperationHolder<RequestTelemetry> operation = null;
 
             try
             {
-                if (traceParent == null)
-                    throw new Exception("Trace information not found in message");
-
                 if (tracer != null)
                 {
-                    var traceId = ActivityTraceId.CreateFromString(traceParent.TraceId);
-                    var parentId = ActivitySpanId.CreateFromString(traceParent.SpanId);
-                    var parentContext = new SpanContext(traceId, parentId, ActivityTraceFlags.Recorded, isRemote: true);
-                    tracer.StartActiveSpan("Process single RabbitMQ message", parentContext, SpanKind.Consumer, out span);
+                    // OpenTelemetry seems to require the Activity to have started, unlike AI SDK
+                    activity.Start();
+                    tracer.StartActiveSpanFromActivity(activity.OperationName, activity, SpanKind.Consumer, out span);
+
                     span.SetAttribute("queue", Constants.WebQueueName);
                 }
 
-                using (operation = telemetryClient?.StartOperation<RequestTelemetry>("Process single RabbitMQ message", traceParent.TraceId, traceParent.SpanId))
+                using (operation = telemetryClient?.StartOperation<RequestTelemetry>(activity))
                 {
                     if (operation != null)
                     {
                         operation.Telemetry.Properties.Add("queue", Constants.WebQueueName);
                     }
 
-                    using (logger.BeginScope("processing message {correlationId}", traceParent.TraceId))
+                    using (logger.BeginScope("processing message {correlationId}", activity.TraceId))
                     {
                         var apiFullUrl = $"{timeApiURL}/api/time/dbtime";
                         var time = await httpClientFactory.CreateClient().GetStringAsync(apiFullUrl);

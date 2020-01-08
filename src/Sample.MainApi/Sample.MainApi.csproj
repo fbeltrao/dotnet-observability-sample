@@ -6,10 +6,12 @@
       <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
       <DockerfileContext>..\..</DockerfileContext>
       <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
+      <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
       <ProjectReference Include="..\Sample.Common\Sample.Common.csproj">
       </ProjectReference>
+      <ProjectReference Include="..\Sample.RabbitMQCollector\Sample.RabbitMQCollector.csproj" />
   </ItemGroup>
   <ItemGroup>
       <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
