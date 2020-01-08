@@ -76,6 +76,8 @@ namespace Sample.Common
                             o.Endpoint = zipkinOptions.Value.Endpoint;
                             o.ServiceName = serviceName;
                         });
+
+                        Console.WriteLine("Using OpenTelemetry Zipkin exporter");
                     }
                 }
             
@@ -89,6 +91,8 @@ namespace Sample.Common
                         o.InstrumentationKey = sampleAppOptions.ApplicationInsightsForOpenTelemetryInstrumentationKey;
                         o.TelemetryInitializers.Add(new CloudRoleTelemetryInitializer());
                     });
+
+                    Console.WriteLine("Using OpenTelemetry ApplicationInsights exporter");
                 }
 
                 if (jaegerConfigSection.Exists())
@@ -117,6 +121,8 @@ namespace Sample.Common
                             o.MaxPacketSize = jaegerOptions.Value.MaxPacketSize;
                             o.ProcessTags = jaegerOptions.Value.ProcessTags;
                         });
+
+                        Console.WriteLine("Using OpenTelemetry Jaeger exporter");
                     }
                 }
 
@@ -154,6 +160,8 @@ namespace Sample.Common
 
                     // Add start/stop lifetime support
                     services.AddHostedService<PromotheusExporterHostedService>();
+
+                    Console.WriteLine("Using OpenTelemetry Prometheus exporter");
                 }
             }
 
@@ -180,6 +188,8 @@ namespace Sample.Common
             }
 
             services.AddSingleton<ITelemetryInitializer, CloudRoleTelemetryInitializer>();
+
+            Console.WriteLine("Using Application Insights SDK");
 
             return services;
         }

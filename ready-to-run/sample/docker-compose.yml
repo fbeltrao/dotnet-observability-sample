@@ -2,10 +2,14 @@ version: '3.4'
 
 services:
   sample.mainapi:
-    image: ${DOCKER_REGISTRY-}dotnetobservabilitysample-mainapi${TAG-}
+    image: fbeltrao/dotnetobservabilitysample-mainapi
     environment:
       - SampleApp__RabbitMQHostName=rabbitmq
       - SampleApp__TimeAPIUrl=http://sample.timeapi
+      - SampleApp__UseApplicationInsights=${USE_APPLICATIONINSIGHTS-false}
+      - SampleApp__UseOpenTelemetry=${USE_OPENTELEMETRY-true}
+      - SampleApp__ApplicationInsightsInstrumentationKey=${AI_INSTRUMENTATIONKEY-}
+      - SampleApp__ApplicationInsightsForOpenTelemetryInstrumentationKey=${AI_INSTRUMENTATIONKEY_OPENTELEMETRY-}
       - OpenTelemetry__Prometheus__Url=http://sample.mainapi:9184/metrics/
       - OpenTelemetry__Jaeger__AgentHost=jaeger
     depends_on:
@@ -13,41 +17,40 @@ services:
       - sample.timeapi
       - prometheus
       - jaeger
-    build:
-      context: .
-      dockerfile: src/Sample.MainApi/Dockerfile
     ports:
       - "5001:80"
       - "9184:9184"
 
   sample.rabbitmqprocessor:
-    image: ${DOCKER_REGISTRY-}dotnetobservabilitysample-rabbitmqprocessor${TAG-}
+    image: fbeltrao/dotnetobservabilitysample-rabbitmqprocessor
     environment:
       - SampleApp__RabbitMQHostName=rabbitmq
       - SampleApp__TimeAPIUrl=http://sample.timeapi
+      - SampleApp__UseApplicationInsights=${USE_APPLICATIONINSIGHTS-false}
+      - SampleApp__UseOpenTelemetry=${USE_OPENTELEMETRY-true}
+      - SampleApp__ApplicationInsightsInstrumentationKey=${AI_INSTRUMENTATIONKEY-}
+      - SampleApp__ApplicationInsightsForOpenTelemetryInstrumentationKey=${AI_INSTRUMENTATIONKEY_OPENTELEMETRY-}
       - OpenTelemetry__Jaeger__AgentHost=jaeger
     depends_on:
       - rabbitmq
       - sample.timeapi
       - prometheus
       - jaeger
-    build:
-      context: .
-      dockerfile: src/Sample.RabbitMQProcessor/Dockerfile
 
   sample.timeapi:
-    image: ${DOCKER_REGISTRY-}dotnetobservabilitysample-timeapi${TAG-}
+    image: fbeltrao/dotnetobservabilitysample-timeapi
+    environment:
+      - SampleApp__RabbitMQHostName=rabbitmq
+      - SampleApp__UseApplicationInsights=${USE_APPLICATIONINSIGHTS-false}
+      - SampleApp__UseOpenTelemetry=${USE_OPENTELEMETRY-true}
+      - SampleApp__ApplicationInsightsInstrumentationKey=${AI_INSTRUMENTATIONKEY-}
+      - SampleApp__ApplicationInsightsForOpenTelemetryInstrumentationKey=${AI_INSTRUMENTATIONKEY_OPENTELEMETRY-}
+      - SqlConnectionString=server=sqlserver;user id=sa;password=Pass@Word1;
+      - OpenTelemetry__Jaeger__AgentHost=jaeger    
     depends_on:
       - sqlserver
       - prometheus
       - jaeger
-    environment:
-      - SampleApp__RabbitMQHostName=rabbitmq
-      - SqlConnectionString=server=sqlserver;user id=sa;password=Pass@Word1;
-      - OpenTelemetry__Jaeger__AgentHost=jaeger
-    build:
-      context: .
-      dockerfile: src/Sample.TimeApi/Dockerfile
     ports:
       - "5002:80"
 
@@ -81,7 +84,7 @@ services:
   prometheus:
     image: prom/prometheus
     volumes: 
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../../prometheus.yml:/etc/prometheus/prometheus.yml
     command: 
       - '--config.file=/etc/prometheus/prometheus.yml'
     ports:

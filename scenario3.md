@@ -222,13 +222,7 @@ docker run -d --name jaeger \
         jaegertracing/all-in-one
 ```
 
-- When using OpenTelemetry, in order to visualize metrics ensure Grafana and Prometheus are running locally
-
-```bash
-docker-compose up
-```
-
-To visualize it, open Grafana on your browser at [http://localhost:3000](http://localhost:3000) (credentials are admin/password1). Add Prometheus as data source (URL is http://prometheus:9090).
+- When using OpenTelemetry, in order to visualize metrics ensure Grafana and Prometheus are running locally. A docker-compose file is ready to run under `ready-to-run\prometheus-grafana`. Open terminal there and execute `docker-compose up -d`.<br/>To visualize it, open Grafana on your browser at [http://localhost:3000](http://localhost:3000) (credentials are admin/password1). Next, add Prometheus as data source (URL is http://prometheus:9090).
 
 - When using Application Insights, ensure the instrumentation key is set (a simpler way to provide settings to all applications is to create file appsettings.Development.json in folder ./shared):
 

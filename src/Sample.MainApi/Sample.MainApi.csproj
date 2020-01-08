@@ -3,12 +3,16 @@
   <PropertyGroup>
       <TargetFramework>netcoreapp3.1</TargetFramework>
       <ReleaseVersion>0.2</ReleaseVersion>
+      <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+      <DockerfileContext>..\..</DockerfileContext>
+      <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
   <ItemGroup>
       <ProjectReference Include="..\Sample.Common\Sample.Common.csproj">
       </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+      <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
       <PackageReference Include="RabbitMQ.Client" Version="5.1.2" />
   </ItemGroup>
   <ItemGroup>
