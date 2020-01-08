@@ -6,9 +6,11 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
-COPY ["src/Sample.MainApi/Sample.MainApi.csproj", "src/Sample.MainApi/"]
 COPY ["src/Sample.Common/Sample.Common.csproj", "src/Sample.Common/"]
+COPY ["src/Sample.RabbitMQCollector/Sample.RabbitMQCollector.csproj", "src/Sample.RabbitMQCollector/"]
 COPY ["NuGet.config", "./"]
+COPY ["src/Sample.MainApi/Sample.MainApi.csproj", "src/Sample.MainApi/"]
+
 RUN dotnet restore "src/Sample.MainApi/Sample.MainApi.csproj"
 COPY . .
 WORKDIR "/src/src/Sample.MainApi"

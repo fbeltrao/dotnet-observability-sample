@@ -24,6 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sample.Common\Sample.Common.csproj" />
+    <ProjectReference Include="..\Sample.RabbitMQCollector\Sample.RabbitMQCollector.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="appsettings.json">

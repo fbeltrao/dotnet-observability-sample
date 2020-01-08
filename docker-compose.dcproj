@@ -5,7 +5,7 @@
     <DockerTargetOS>Linux</DockerTargetOS>
     <ProjectGuid>d9851614-526f-43c3-b9e2-f93b0f0e1448</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
-    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/{Scheme}://{ServiceHost}:{ServicePort}/api/dbtime</DockerServiceUrl>
+    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/api/dbtime</DockerServiceUrl>
     <DockerServiceName>sample.mainapi</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>

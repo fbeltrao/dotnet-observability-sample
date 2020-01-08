@@ -12,80 +12,71 @@ This scenario covers asynchronous transactions using RabbitMQ queues. In this sc
 
 ## Implementation
 
-It is necessary to write custom code to correlate RabbitMQ message consumption with the trace that generated the message. The sample application uses RabbitMQ message headers to include the trace parent of each message.
+In order to correlate the publisher and consumer of a RabbitMQ message we need have to add the traceability ourselves. There is no built-in traceability as with HTTP requests in .NET Core 3.0. The sample application uses RabbitMQ message headers to include the trace parent of each message. Similar to the way Azure Service Bus does.
 
-In publisher:
-
-```c#
-var props = channel.CreateBasicProperties();
-props.Headers = new Dictionary<string, object>();
-props.Headers.Add("traceparent", "00-cd4262a7f7adf040bdd892959cf8c4fc-4a28d39ff0e725f2-01");
-
-channel.BasicPublish("", QueueName, props, System.Text.Encoding.UTF8.GetBytes(message))
-```
-
-In consumer:
+In the sample application, the publisher starts a System.Diagnostics.Activity before publishing a message to RabbitMQ. The full id (W3C format) is forwarded in the message header:
 
 ```c#
-if (rabbitMessage.BasicProperties.Headers.TryGetValue(TraceParent.HeaderKey, out var rawTraceParent) && rawTraceParent is byte[] binRawTraceParent)
+Activity activity = null;
+if (diagnosticSource.IsEnabled(Constants.DiagnosticsName))
 {
-    // parse "00-cd4262a7f7adf040bdd892959cf8c4fc-4a28d39ff0e725f2-01" into
-    // version
-    // traceId
-    // parentId
-    // flags
+    activity = new Activity(Constants.PublishActivityName);
+    // code removed for simplicity
+    diagnosticSource.StartActivity(activity, null);
+
+    basicProperties.Headers.Add("traceparent", activity.Id);
 }
+
+channel.BasicPublish(...)
 ```
 
-Once we have the parent and trace ids we need to start the consumer activity referencing them.
+In consumer, the trace parent is extracted from the message header and used when creating the consumer Activity.
 
-For OpenTelemetry:
-
-```C#
-var parentContext = new SpanContext(traceId, parentId, ActivityTraceFlags.Recorded, isRemote: true);
-tracer.StartActiveSpan("Process single RabbitMQ message", parentContext, SpanKind.Consumer, out span);
-```
-
-For Application Insights:
-
-```C#
-using (var operation = telemetryClient.StartOperation<RequestTelemetry>("Process single RabbitMQ message", traceId, parentId))
+```c#
+public static Activity ExtractActivity(this BasicDeliverEventArgs source, string name)
 {
-    ...
-}
-```
+    var activity = new Activity(name);
 
-The requirement to track RabbitMQ publishing also requires additional code. The easier option is to use the target SDK and create spans/operations before calling RabbitMQ (as we did for SQL server in Open Telemetry).
-
-The second option is to create System.Diagnostics.Activity objects, as a SDK provider would do. Collectors to OpenTelemetry or Application Insights subscribe to those activities, creating the the corresponding span (or dependency in Application Insights).
-
-This is the code added to RabbitMQ publisher to generate an activity:
-
-```C#
-static DiagnosticSource diagnosticSource = new DiagnosticListener("Sample.RabbitMQ");
-
-public void Publish(string message, string traceId, string spanId)
-{
-    Activity activity = null;
-    if (diagnosticSource.IsEnabled("Sample.RabbitMQ"))
+    if (source.BasicProperties.Headers.TryGetValue("traceparent", out var rawTraceParent) && rawTraceParent is byte[] binRawTraceParent)
     {
-        activity = new Activity("Publish to RabbitMQ");
-        activity.AddTag("operation", "publish");
-        activity.AddTag("host", HostName);
-        activity.AddTag("queue", QueueName);
-        diagnosticSource.StartActivity(activity, null);
+        activity.SetParentId(Encoding.UTF8.GetString(binRawTraceParent));
     }
 
-    // publish to RabbitMQ
-
-    if (activity != null)
-    {
-        diagnosticSource.StopActivity(activity, null);
-    }
+    return activity;
 }
 ```
 
-The sample project contains a simplified collector implementation for Application Insights and OpenTelemetry. For production quality please refer to OpenTelemetry and/or Application Insights built-in collectors and this [user guide](https://github.com/dotnet/corefx/blob/master/src/System.Diagnostics.DiagnosticSource/src/ActivityUserGuide.md).
+The created Activities won't be added to exported to OpenTelemetry or Application Insights by themselves. We have two options to export them.
+
+### Using the Activity directly
+
+In this approach the final span/operation is created from an Activity. This is how the consumer sample application was built.
+
+Activity extracting:
+
+```c#
+// ExtractActivity creates the Activity setting the parent based on the RabbitMQ "traceparent" header
+var activity = rabbitMQMessage.ExtractActivity("Process single RabbitMQ message");
+```
+
+OpenTelemetry:
+
+```c#
+activity.Start();
+tracer.StartActiveSpanFromActivity(activity.OperationName, activity, SpanKind.Consumer, out span);
+```
+
+Application Insights:
+
+```c#
+var operation = telemetryClient.StartOperation<RequestTelemetry>(activity);
+```
+
+### Using Diagnostic Listeners
+
+Another way to consume generated Activities is to subscribe to them, creating the the corresponding span (or dependency in Application Insights).
+
+The sample publisher (Sample.MainApi) contains a simplified collector implementation for Application Insights and OpenTelemetry (Sample.RabbitMQCollector project). For production quality please refer to OpenTelemetry and/or Application Insights built-in collectors and this [user guide](https://github.com/dotnet/corefx/blob/master/src/System.Diagnostics.DiagnosticSource/src/ActivityUserGuide.md).
 
 For OpenTelemetry, this is how it looks like:
 
@@ -94,7 +85,9 @@ public class RabbitMQListener : ListenerHandler
 {
     public override void OnStartActivity(Activity activity, object payload)
     {
-        this.Tracer.StartSpanFromActivity(activity.OperationName, activity);
+        var span = this.Tracer.StartSpanFromActivity(activity.OperationName, activity);
+            foreach (var kv in activity.Tags)
+                span.SetAttribute(kv.Key, kv.Value);
     }
 
     public override void OnStopActivity(Activity activity, object payload)
@@ -108,9 +101,11 @@ public class RabbitMQListener : ListenerHandler
     }
 }
 
-subscriber = new DiagnosticSourceSubscriber(new RabbitMQListener("Sample.RabbitMQ", tracer), DefaultFilter);
+var subscriber = new DiagnosticSourceSubscriber(new RabbitMQListener("Sample.RabbitMQ", tracer), DefaultFilter);
 subscriber.Subscribe();
 ```
+
+### Metrics requirements implementation
 
 To fulfill metrics requirements using OpenTelemetry, the sample application uses a Prometheus exporter.
 
@@ -138,7 +133,6 @@ var labelSet = new Dictionary<string, string>()
 };
 
 counter.Add(context, 1L, meter.GetLabelSet(labelSet));
-
 ```
 
 Application Insights SDK also provides support to metrics, as the code below demonstrates:
@@ -236,7 +230,12 @@ docker run -d --name jaeger \
 }
 ```
 
-To run the sample start the projects Sample.TimeApi, Sample.MainApi and Sample.RabbitMQProcessor. To generate load use the following scripts:
+To run you can either:
+
+- debug from Visual Studio (start project -> docker-compose)
+- start from the terminal, using docker-compose (docker-compose up --build).
+
+To generate load use the following scripts:
 
 Enqueuing from "WebSiteA" every 2 seconds
 

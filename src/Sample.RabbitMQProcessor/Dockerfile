@@ -5,9 +5,10 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
-COPY ["src/Sample.RabbitMQProcessor/Sample.RabbitMQProcessor.csproj", "src/Sample.RabbitMQProcessor/"]
 COPY ["src/Sample.Common/Sample.Common.csproj", "src/Sample.Common/"]
+COPY ["src/Sample.RabbitMQCollector/Sample.RabbitMQCollector.csproj", "src/Sample.RabbitMQCollector/"]
 COPY ["NuGet.config", "./"]
+COPY ["src/Sample.RabbitMQProcessor/Sample.RabbitMQProcessor.csproj", "src/Sample.RabbitMQProcessor/"]
 RUN dotnet restore "src/Sample.RabbitMQProcessor/Sample.RabbitMQProcessor.csproj"
 COPY . .
 WORKDIR "/src/src/Sample.RabbitMQProcessor"

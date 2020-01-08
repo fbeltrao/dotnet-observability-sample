@@ -11,7 +11,7 @@ services:
       - SampleApp__ApplicationInsightsInstrumentationKey=${AI_INSTRUMENTATIONKEY-}
       - SampleApp__ApplicationInsightsForOpenTelemetryInstrumentationKey=${AI_INSTRUMENTATIONKEY_OPENTELEMETRY-}
       - OpenTelemetry__Prometheus__Url=http://sample.mainapi:9184/metrics/
-      - OpenTelemetry__Jaeger__AgentHost=jaeger
+      - OpenTelemetry__Jaeger__AgentHost=${JAEGER_AGENTHOST-jaeger}
     depends_on:
       - rabbitmq
       - sample.timeapi
@@ -30,7 +30,7 @@ services:
       - SampleApp__UseOpenTelemetry=${USE_OPENTELEMETRY-true}
       - SampleApp__ApplicationInsightsInstrumentationKey=${AI_INSTRUMENTATIONKEY-}
       - SampleApp__ApplicationInsightsForOpenTelemetryInstrumentationKey=${AI_INSTRUMENTATIONKEY_OPENTELEMETRY-}
-      - OpenTelemetry__Jaeger__AgentHost=jaeger
+      - OpenTelemetry__Jaeger__AgentHost=${JAEGER_AGENTHOST-jaeger}
     depends_on:
       - rabbitmq
       - sample.timeapi
@@ -46,7 +46,7 @@ services:
       - SampleApp__ApplicationInsightsInstrumentationKey=${AI_INSTRUMENTATIONKEY-}
       - SampleApp__ApplicationInsightsForOpenTelemetryInstrumentationKey=${AI_INSTRUMENTATIONKEY_OPENTELEMETRY-}
       - SqlConnectionString=server=sqlserver;user id=sa;password=Pass@Word1;
-      - OpenTelemetry__Jaeger__AgentHost=jaeger    
+      - OpenTelemetry__Jaeger__AgentHost=${JAEGER_AGENTHOST-jaeger}    
     depends_on:
       - sqlserver
       - prometheus

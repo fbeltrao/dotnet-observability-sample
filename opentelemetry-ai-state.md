@@ -33,35 +33,43 @@ Using AI SDK:
 
 ![Failure Application Insights](media/failures-ai-ai.png)
 
-## 4. Difference in first request duration
+## 4. Differences in creating span from System.Diagnostics.Activity
 
-When building traces for asynchronous transactions (publisher/consumer) the starting request duration is different depending on the SDK used.
+When creating spans/operations from a System.Diagnostics.Activity, OpenTelemetry has 2 differences in comparison to Application Insights (between methods Tracer.StartActiveSpanFromActivity and TelemetryClient.StartOperation<RequestTelemetry>).
 
-With Application Insights SDK the request duration seems to be the total time. On the other hand, using OpenTelemetry SDK, it seems to have only the self time.
+- OpenTelemetry won't automatically copy Activity.Tags
+- OpenTelemetry requires the activity to have been started (Activity.Start())
 
-Application Insights SDK:
+## ~~5. Difference in first request duration~~
+
+~~When building traces for asynchronous transactions (publisher/consumer) the starting request duration is different depending on the SDK used.~~
+
+~~With Application Insights SDK the request duration seems to be the total time. On the other hand, using OpenTelemetry SDK, it seems to have only the self time.~~
+
+~~Application Insights SDK:~~
 
 ![Application Insights SDK](media/ai-sdk-request-differences.png)
 
-Open Telemetry SDK:
+~~Open Telemetry SDK:~~
 
 ![Open Telemetry SDK](media/ot-sdk-request-differences.png)
 
-When using the Jaeger exporter the starting request has the self time as duration (as with OpenTelemetry + Application Insights exporter):
+~~When using the Jaeger exporter the starting request has the self time as duration (as with OpenTelemetry + Application Insights exporter):~~
 
 ![Jaeger start request duration](media/ot-sdk-jaeger-request-differences.png)
 
-This difference is also visible in Application Insights/Workbooks/Application Performance Insights.
+~~This difference is also visible in Application Insights/Workbooks/Application Performance Insights.~~
 
-OpenTelemetry SDK has only the self time:
+~~OpenTelemetry SDK has only the self time:~~
 
 ![Open Telemetry SDK performance Insights](media/ot-ai-performance-insights.png)
 
-Application Insights SDK has the total time:
+~~Application Insights SDK has the total time:~~
 
 ![Application Insights SDK performance Insights](media/ai-ai-performance-insights.png)
 
-For me, the ideal solution would be:
+~~For me, the ideal solution would be:~~
 
-- Allow visualization and alerting on end-to-end transaction duration (total time)
-- Include self time of requests starting an asynchronous trace
+~~- Allow visualization and alerting on end-to-end transaction duration (total time)~~
+~~- Include self time of requests starting an asynchronous trace~~
+
