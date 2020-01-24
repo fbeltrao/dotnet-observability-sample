@@ -39,7 +39,7 @@ namespace Sample.TimeApi.Controllers
 
             var result = await repository.GetTimeFromSqlAsync();
 
-            logger.LogInformation("Retrieved db time: delta to local is {delta}ms", Math.Abs(DateTime.UtcNow.Subtract(result).TotalMilliseconds));
+            logger.LogInformation("{operation} result is {result}", nameof(repository.GetTimeFromSqlAsync), result);
 
             return result;
         }
