@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   sample.mainapi:
-    image: ${DOCKER_REGISTRY-}dotnetobservabilitysample-mainapi${TAG-}
+    image: ${DOCKER_REGISTRY-}dotnetobservabilitysample-mainapi:${TAG-latest}
     environment:
       - SampleApp__RabbitMQHostName=rabbitmq
       - SampleApp__TimeAPIUrl=http://sample.timeapi
@@ -25,7 +25,7 @@ services:
       - "9184:9184"
 
   sample.rabbitmqprocessor:
-    image: ${DOCKER_REGISTRY-}dotnetobservabilitysample-rabbitmqprocessor${TAG-}
+    image: ${DOCKER_REGISTRY-}dotnetobservabilitysample-rabbitmqprocessor:${TAG-latest}
     environment:
       - SampleApp__RabbitMQHostName=rabbitmq
       - SampleApp__TimeAPIUrl=http://sample.timeapi
@@ -44,7 +44,7 @@ services:
       dockerfile: src/Sample.RabbitMQProcessor/Dockerfile
 
   sample.timeapi:
-    image: ${DOCKER_REGISTRY-}dotnetobservabilitysample-timeapi${TAG-}
+    image: ${DOCKER_REGISTRY-}dotnetobservabilitysample-timeapi:${TAG-latest}
     environment:
       - SampleApp__RabbitMQHostName=rabbitmq
       - SampleApp__TimeAPIUrl=http://sample.timeapi

@@ -8,7 +8,7 @@ This document takes a look at current options to implement observability in .NET
 
 ## Observability
 
-Agile, devops, continuous delivery are terms used nowadays in modern software development practices. The idea is to change/fail fast and update constantly. In order to be able to deliver fast it is fundamental to have tools monitoring how the running system behaves. This tool(s) contain required information needed to separate a good update from a bad. Remediating a bad update usually means rolling back to previous version and working on the identified issues. Combined with progressive deployment strategies (canary, mirroring, rings, blue/green, etc.) the impact of a bad update can be minimized.
+Agile, devops, continuous delivery are terms used nowadays in modern software development practices. The idea is to change/fail fast and update constantly. In order to be able to deliver fast it is fundamental to have tools monitoring how the running system behaves. This tool(s) contains required information needed to separate a good update from a bad. Remediating a bad update usually means rolling back to previous version and working on the identified issues. Combined with progressive deployment strategies (canary, mirroring, rings, blue/green, etc.) the impact of a bad update can be minimized.
 
 The following information can be used to identify bad updates:
 
@@ -21,7 +21,7 @@ The following information can be used to identify bad updates:
 This observability is typically built by 3 pillars:
 
 - Logging: collects information about events happening in the system, helping the team identifying unexpected application behavior
-- Tracing: collects information creating an end-to-end view of how transaction are executed in a distributed system
+- Tracing: collects information creating an end-to-end view of how transactions are executed in a distributed system
 - Metrics: provide a near real-time indication of how the system is running. As opposed to logs and traces, the amount of data collected using metrics remains constant as the system load increases
 
 ## Adding observability to .NET Core Stack
@@ -58,7 +58,7 @@ Simplified, [OpenTelemetry collects traces using spans](https://github.com/open-
 
 Application Insights have different names for spans and their identifiers. The table below has a summary of them:
 
-|Application Insights|OpenTracing|
+|Application Insights|OpenTelemetry|
 |-|-|
 |Request, PageView|Span with span.kind = server|
 |Dependency|Span with span.kind = client|
