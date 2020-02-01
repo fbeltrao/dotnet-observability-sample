@@ -116,6 +116,11 @@ To generate load use the following script:
 watch -n 1 curl --request  GET  http://localhost:5001/api/dbtime
 ```
 
+```powershell
+while (1) {Invoke-WebRequest -Uri http://localhost:5001/api/dbtime; sleep 1}
+```
+
+
 ## Where to go next
 
 - [Back to overview](./README.md)

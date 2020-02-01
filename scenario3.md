@@ -243,16 +243,28 @@ Enqueuing from "WebSiteA" every 2 seconds
 watch -n 2 curl --request GET http://localhost:5001/api/enqueue/WebSiteA
 ```
 
+```powershell
+while (1) {Invoke-WebRequest -Uri http://localhost:5001/api/enqueue/WebSiteA; sleep 2}
+```
+
 Enqueuing from "WebSiteB" every 10 seconds
 
 ```bash
 watch -n 10 curl --request GET http://localhost:5001/api/enqueue/WebSiteB
 ```
 
+```powershell
+while (1) {Invoke-WebRequest -Uri http://localhost:5001/api/enqueue/WebSiteB; sleep 10}
+```
+
 Enqueuing from "WebSiteC" every 30 seconds
 
 ```bash
 watch -n 30 curl --request GET http://localhost:5001/api/enqueue/WebSiteC
+```
+
+```powershell
+while (1) {Invoke-WebRequest -Uri http://localhost:5001/api/enqueue/WebSiteC; sleep 30}
 ```
 
 ## Where to go next

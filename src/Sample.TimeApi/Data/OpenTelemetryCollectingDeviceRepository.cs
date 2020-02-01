@@ -28,6 +28,7 @@ namespace Sample.TimeApi.Data
             }
             catch (Exception ex)
             {
+                span.SetAttribute("error", true);
                 span.Status = Status.Internal.WithDescription(ex.ToString());
                 throw;
             }

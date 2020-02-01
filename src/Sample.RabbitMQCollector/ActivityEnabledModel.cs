@@ -145,15 +145,16 @@ namespace Sample.RabbitMQCollector
                     activity.AddTag(Constants.RoutingKeyTagName, routingKey);
 
                 diagnosticSource.StartActivity(activity, null);
-
-                basicProperties = basicProperties ?? model.CreateBasicProperties();
-                if (basicProperties.Headers == null)
-                {
-                    basicProperties.Headers = new Dictionary<string, object>();
-                }
-
-                basicProperties.Headers.Add(TraceParent.HeaderKey, activity.Id);
             }
+
+            // Add into the header the current activity identifier
+            basicProperties = basicProperties ?? model.CreateBasicProperties();
+            if (basicProperties.Headers == null)
+            {
+                basicProperties.Headers = new Dictionary<string, object>();
+            }
+
+            basicProperties.Headers.Add(TraceParent.HeaderKey, Activity.Current.Id);
 
             try
             {

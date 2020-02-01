@@ -15,3 +15,8 @@ scrape_configs:
     scrape_interval: 5s
     static_configs:
          - targets: ['host.docker.internal:9184']
+
+  - job_name: 'rabbitmq-processor'
+    scrape_interval: 5s
+    static_configs:
+         - targets: ['host.docker.internal:9185']

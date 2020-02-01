@@ -97,17 +97,30 @@ To quickly see the application running using pre-built docker images and docker-
 
 ### Using OpenTelemetry
 
+1. Clone this repository
 1. Open terminal under `ready-to-run\sample`
 1. Execute `docker-compose up`
-1. Generate load with `watch -n 2 curl --request GET http://localhost:5001/api/enqueue/WebSiteA`
-1. View traces in [Jaeger](http://localhost:16686/)
-1. View metrics by searching for "Enqueued_Item" in [Prometheus](http://localhost:9090)
-1. Build dashboards in [Grafana](http://localhost:3000/) (admin/password1)
+1. Generate load in terminal with
+
+```bash
+watch -n 2 curl --request GET http://localhost:5001/api/enqueue/WebSiteA
+```
+
+for PowerShell use this script:
+
+```Powershell
+while (1) {Invoke-WebRequest -Uri http://localhost:5001/api/enqueue/WebSiteA; sleep 2}
+```
+
+4. View traces in [Jaeger](http://localhost:16686/)
+5. View metrics by searching for "Enqueued_Item" in [Prometheus](http://localhost:9090)
+6. Build dashboards in [Grafana](http://localhost:3000/) (admin/password1)
 
 ### Using Application Insights SDK
 
+1. Clone this repository
 1. Open terminal under `ready-to-run\sample`
-2. Add .env file with following content:
+1. Create file `ready-to-run\sample\.env` with following content:
 
 ```env
 USE_APPLICATIONINSIGHTS=true
@@ -115,10 +128,20 @@ USE_OPENTELEMETRY=false
 AI_INSTRUMENTATIONKEY=<ENTER-APPLICATION-INSIGHTS-INSTRUMENTATION-KEY>
 ```
 
-3. Execute `docker-compose up`
-4. Generate load with `watch -n 2 curl --request GET http://localhost:5001/api/enqueue/WebSiteA`
-5. View logs, traces and metrics in Azure Portal Application Insights
+4. Execute `docker-compose up`
+5. Generate load in terminal with
 
+```bash
+watch -n 2 curl --request GET http://localhost:5001/api/enqueue/WebSiteA
+```
+
+for PowerShell use this script:
+
+```Powershell
+while (1) {Invoke-WebRequest -Uri http://localhost:5001/api/enqueue/WebSiteA; sleep 2}
+```
+
+5. View logs, traces and metrics in Azure Portal Application Insights
 
 ## Conclusion
 
