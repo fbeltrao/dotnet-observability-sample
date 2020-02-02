@@ -141,7 +141,7 @@ for PowerShell use this script:
 while (1) {Invoke-WebRequest -Uri http://localhost:5001/api/enqueue/WebSiteA; sleep 2}
 ```
 
-5. View logs, traces and metrics in Azure Portal Application Insights
+6. View logs, traces and metrics in Azure Portal Application Insights
 
 ## Conclusion
 
