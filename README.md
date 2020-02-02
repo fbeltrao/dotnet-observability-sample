@@ -112,9 +112,9 @@ for PowerShell use this script:
 while (1) {Invoke-WebRequest -Uri http://localhost:5001/api/enqueue/WebSiteA; sleep 2}
 ```
 
-4. View traces in [Jaeger](http://localhost:16686/)
-5. View metrics by searching for "Enqueued_Item" in [Prometheus](http://localhost:9090)
-6. Build dashboards in [Grafana](http://localhost:3000/) (admin/password1)
+5. View traces in [Jaeger](http://localhost:16686/)
+6. View metrics by searching for "Enqueued_Item" in [Prometheus](http://localhost:9090)
+7. Build dashboards in [Grafana](http://localhost:3000/) (admin/password1)
 
 ### Using Application Insights SDK
 
