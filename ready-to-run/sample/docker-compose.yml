@@ -30,12 +30,15 @@ services:
       - SampleApp__UseOpenTelemetry=${USE_OPENTELEMETRY-true}
       - SampleApp__ApplicationInsightsInstrumentationKey=${AI_INSTRUMENTATIONKEY-}
       - SampleApp__ApplicationInsightsForOpenTelemetryInstrumentationKey=${AI_INSTRUMENTATIONKEY_OPENTELEMETRY-}
+      - OpenTelemetry__Prometheus__Url=http://sample.rabbitmqprocessor:9185/metrics/
       - OpenTelemetry__Jaeger__AgentHost=${JAEGER_AGENTHOST-jaeger}
     depends_on:
       - rabbitmq
       - sample.timeapi
       - prometheus
       - jaeger
+    ports:
+      - "9185:9185"
 
   sample.timeapi:
     image: fbeltrao/dotnetobservabilitysample-timeapi

@@ -161,7 +161,7 @@ namespace Sample.Common
                     // Add start/stop lifetime support
                     services.AddHostedService<PromotheusExporterHostedService>();
 
-                    Console.WriteLine("Using OpenTelemetry Prometheus exporter");
+                    Console.WriteLine($"Using OpenTelemetry Prometheus exporter in '{prometheusExporterOptions.Url}'");
                 }
             }
 

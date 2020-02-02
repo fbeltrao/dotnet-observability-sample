@@ -24,6 +24,8 @@ namespace Sample.RabbitMQProcessor
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddWorkerSampleTelemetry(hostContext.Configuration);
+                    services.AddSingleton<IAppMetrics, Metrics>();
+                    services.AddSingleton(x => (Metrics)x.GetRequiredService<IAppMetrics>());
 
                     services.AddHttpClient();
                     services.AddHostedService<WebQueueConsumerHostedService>();
